@@ -6,8 +6,9 @@ const { Camunda8, Auth } = require("@camunda8/sdk");
 
 const app = express();
 app.use(bodyParser.json());
-
+ 
 const camunda = new Camunda8();
+console.log(camunda);
 const zeebe = camunda.getZeebeGrpcApiClient();
 const tasklist = camunda.getTasklistApiClient();
 const operate = camunda.getOperateApiClient();
@@ -18,15 +19,16 @@ let pollingInterval;
 app.post('/api/start-process', async (req, res) => {
     try {
         const deploy = await zeebe.deployResource({
-            processFilename: path.join(process.cwd(), "process.bpmn"),
+            processFilename: path.join(process.cwd(), "IdCard.bpmn"),
         });
         const instance = await zeebe.createProcessInstance({
             bpmnProcessId: deploy.deployments[0].process.bpmnProcessId,
             variables: req.body.variables,
         });
+        console.log(instance);
 
         // Start task poller
-        startHumanTaskPoller(instance.processInstanceKey);
+        // startHumanTaskPoller(instance.processInstanceKey);
 
         res.status(200).json({ processInstanceKey: instance.processInstanceKey });
     } catch (error) {
@@ -52,22 +54,20 @@ app.get('/api/tasks', async (req, res) => {
 });
 
 
-
-// Complete task
 // if (taskId) {
-app.post('/api/complete-task', async (req, res) => {
-    const { taskID, variables } = req.body;
-    try {
-        // console.log("task ids : ", taskID);
-        // console.log("variable : ", variables)
+// app.post('/api/complete-task', async (req, res) => {
+//     const { taskID, variables } = req.body;
+//     try {
+//         // console.log("task ids : ", taskID);
+//         // console.log("variable : ", variables)
 
-        const data = await tasklist.completeTask(taskID, variables);
-        res.status(200).send({ message: 'Task completed', body: req.body, data });
-    } catch (error) {
-        console.error('Error completing task:', error);
-        res.status(500).send('Error completing task');
-    }
-});
+//         const data = await tasklist.completeTask(taskID, variables);
+//         res.status(200).send({ message: 'Task completed', body: req.body, data });
+//     } catch (error) {
+//         console.error('Error completing task:', error);
+//         res.status(500).send('Error completing task');
+//     }
+// });
 // }
 
 
